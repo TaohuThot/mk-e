@@ -13,6 +13,7 @@ export default function OrderForm({ customers, defaultCustomerId }: Props) {
   const [lines, setLines] = useState<Line[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProductSearchResult[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const searchRef = useRef<HTMLInputElement>(null);
   // คำค้นล่าสุด ใช้ทิ้งผลค้นหาเก่าที่ตอบกลับมาช้ากว่าคำค้นใหม่
@@ -34,6 +35,12 @@ export default function OrderForm({ customers, defaultCustomerId }: Props) {
   }, [query]);
 
   function addLine(product: ProductSearchResult) {
+    const inCart = lines.find((l) => l.id === product.id)?.quantity ?? 0;
+    if (inCart >= product.stock) {
+      setNotice(`"${product.name}" สต็อกไม่พอ (คงเหลือ ${product.stock})`);
+      return;
+    }
+    setNotice(null);
     setLines((prev) => {
       const existing = prev.find((l) => l.id === product.id);
       if (existing) return prev.map((l) => (l.id === product.id ? { ...l, quantity: l.quantity + 1 } : l));
@@ -58,6 +65,7 @@ export default function OrderForm({ customers, defaultCustomerId }: Props) {
     const found = await searchProducts(q);
     const exact = found.find((p) => p.barcode === q || p.sku === q);
     if (exact) addLine(exact);
+    else if (found.length === 0) setNotice(`ไม่พบสินค้า "${q}"`);
     else if (latestQuery.current === "") {
       setQuery(q);
       setResults(found);
@@ -98,12 +106,16 @@ export default function OrderForm({ customers, defaultCustomerId }: Props) {
           id="search"
           ref={searchRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setNotice(null);
+          }}
           onKeyDown={onSearchEnter}
           autoComplete="off"
           autoFocus
           className={inputClass}
         />
+        {notice && <p className="mt-1 text-sm text-red-600">{notice}</p>}
         {results.length > 0 && (
           <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border bg-white shadow-lg">
             {results.map((p) => (

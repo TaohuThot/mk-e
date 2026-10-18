@@ -5,3 +5,12 @@ body {
   color: var(--foreground);
   font-family: var(--font-noto-sans-thai), sans-serif;
 }
+
+/* Tailwind v4 ใช้ currentColor เป็นสีเส้นขอบเริ่มต้น ทำให้เส้นแบ่งตารางในหลังบ้านเป็นสีดำ */
+@layer base {
+  .admin-ui *,
+  .admin-ui ::before,
+  .admin-ui ::after {
+    border-color: var(--color-gray-200);
+  }
+}

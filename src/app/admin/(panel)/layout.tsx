@@ -16,7 +16,7 @@ const nav = [
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   return (
-    <div className="min-h-screen bg-gray-100 md:flex">
+    <div className="admin-ui min-h-screen bg-gray-100 md:flex">
       <aside className="bg-gray-800 text-white md:min-h-screen md:w-56 md:shrink-0">
         <div className="p-4 text-xl font-semibold">MyShop หลังบ้าน</div>
         <nav className="flex gap-1 overflow-x-auto px-2 pb-2 md:flex-col md:overflow-visible">
