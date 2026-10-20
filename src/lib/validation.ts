@@ -9,11 +9,20 @@ export const optionalText = z
 
 export const requiredText = (label: string) => z.string().trim().min(1, `กรุณากรอก${label}`);
 
-export const money = z.coerce
-  .number({ message: "ราคาต้องเป็นตัวเลข" })
-  .min(0, "ราคาต้องไม่ติดลบ")
-  .max(9_999_999_999, "ราคาสูงเกินไป")
-  .transform((v) => v.toFixed(2));
+const moneyOf = (label: string) =>
+  z.coerce
+    .number({ message: `${label}ต้องเป็นตัวเลข` })
+    .min(0, `${label}ต้องไม่ติดลบ`)
+    .max(9_999_999_999, `${label}สูงเกินไป`)
+    .transform((v) => v.toFixed(2));
+
+export const money = moneyOf("ราคา");
+
+// ราคาที่ไม่บังคับกรอก เช่น ราคาทุน: ช่องว่างเป็น null
+export const optionalMoney = z.preprocess(
+  (v) => (v == null || (typeof v === "string" && v.trim() === "") ? null : v),
+  moneyOf("ราคาทุน").nullable(),
+);
 
 export function firstError(error: z.ZodError) {
   return error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง";

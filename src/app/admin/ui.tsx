@@ -2,17 +2,11 @@
 import { useActionState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 
-export type FormState = { error?: string; ok?: string } | undefined;
+import { buttonClass } from "./styles";
+import type { FormState } from "./styles";
 
-export const inputClass =
-  "w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-export const labelClass = "mb-1 block text-sm font-medium text-gray-700";
-export const buttonClass =
-  "rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50";
-export const secondaryButtonClass =
-  "rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50";
-export const dangerButtonClass =
-  "rounded-md bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50";
+export type { FormState };
+export { buttonClass, dangerButtonClass, inputClass, labelClass, secondaryButtonClass } from "./styles";
 
 // React 19 ล้างค่าในฟอร์มหลัง action ทำงานทุกครั้ง แม้จะคืน error กลับมา
 // hook นี้ส่งฟอร์มเองผ่าน onSubmit เพื่อให้ค่าที่ผู้ใช้กรอกยังอยู่เมื่อบันทึกไม่สำเร็จ

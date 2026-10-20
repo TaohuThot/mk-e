@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { formatMoney } from "@/lib/format";
 import { stockQty } from "@/lib/stock";
 import { fileUrl } from "@/lib/storage";
-import { buttonClass, inputClass } from "../../ui";
+import { buttonClass, inputClass, secondaryButtonClass } from "../../styles";
 
 const PAGE_SIZE = 50;
 
@@ -32,6 +32,7 @@ export default async function ProductsPage({
         sku: products.sku,
         barcode: products.barcode,
         price: products.price,
+        cost: products.cost,
         thumbnailPath: products.thumbnailPath,
         stock: stockQty,
       })
@@ -49,7 +50,10 @@ export default async function ProductsPage({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">สินค้า ({total})</h1>
-        <Link href="/admin/products/new" className={buttonClass}>+ เพิ่มสินค้า</Link>
+        <div className="flex gap-2">
+          <Link href="/admin/products/import" className={secondaryButtonClass}>นำเข้าจากไฟล์</Link>
+          <Link href="/admin/products/new" className={buttonClass}>+ เพิ่มสินค้า</Link>
+        </div>
       </div>
 
       <form className="flex gap-2">
@@ -89,7 +93,10 @@ export default async function ProductsPage({
                   </td>
                   <td className="p-3">{p.sku}</td>
                   <td className="p-3">{p.barcode ?? "-"}</td>
-                  <td className="p-3 text-right">{formatMoney(p.price)}</td>
+                  <td className="p-3 text-right">
+                    {formatMoney(p.price)}
+                    {p.cost && <div className="text-xs text-gray-500">ทุน {formatMoney(p.cost)}</div>}
+                  </td>
                   <td className={`p-3 text-right font-semibold ${p.stock <= 0 ? "text-red-600" : p.stock <= 5 ? "text-amber-600" : ""}`}>
                     {p.stock}
                   </td>

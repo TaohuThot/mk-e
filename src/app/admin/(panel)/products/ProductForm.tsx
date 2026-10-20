@@ -33,6 +33,10 @@ export default function ProductForm({ action, product, imageUrl }: Props) {
           <label htmlFor="price" className={labelClass}>ราคาขาย (บาท) *</label>
           <input id="price" name="price" type="number" min="0" step="0.01" required defaultValue={product?.price ?? ""} className={inputClass} />
         </div>
+        <div>
+          <label htmlFor="cost" className={labelClass}>ราคาทุน (บาท)</label>
+          <input id="cost" name="cost" type="number" min="0" step="0.01" defaultValue={product?.cost ?? ""} className={inputClass} />
+        </div>
         {!product && (
           <div>
             <label htmlFor="initialStock" className={labelClass}>จำนวนเริ่มต้น</label>

@@ -5,7 +5,7 @@ import { customers, orders, orderStatus, type OrderStatus } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatDateTime, formatMoney, ORDER_STATUS_LABELS } from "@/lib/format";
 import StatusBadge from "../../StatusBadge";
-import { buttonClass } from "../../ui";
+import { buttonClass } from "../../styles";
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   await requireUser();

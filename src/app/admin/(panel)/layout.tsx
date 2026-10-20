@@ -11,6 +11,7 @@ const nav = [
   { href: "/admin/products", label: "สินค้า / สต็อก" },
   { href: "/admin/orders", label: "คำสั่งซื้อ" },
   { href: "/admin/customers", label: "ลูกค้า" },
+  { href: "/admin/reports", label: "รายงาน" },
 ];
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {

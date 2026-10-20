@@ -8,7 +8,7 @@ import { orderItems, orders, orderStatus, products, stockMovements } from "@/db/
 import { requireUser } from "@/lib/auth";
 import { stockQty } from "@/lib/stock";
 import { firstError, optionalText } from "@/lib/validation";
-import type { FormState } from "../../ui";
+import type { FormState } from "../../styles";
 
 const orderSchema = z.object({
   customerId: z
@@ -54,7 +54,7 @@ export async function createOrder(_prev: FormState, formData: FormData): Promise
     orderId = await db.transaction(async (tx) => {
       // ล็อกแถวสินค้าตามลำดับ id กัน deadlock และกันขายเกินสต็อก
       const rows = await tx
-        .select({ id: products.id, name: products.name, price: products.price, stock: stockQty })
+        .select({ id: products.id, name: products.name, price: products.price, cost: products.cost, stock: stockQty })
         .from(products)
         .where(inArray(products.id, ids))
         .orderBy(products.id)
@@ -78,7 +78,13 @@ export async function createOrder(_prev: FormState, formData: FormData): Promise
         .returning({ id: orders.id });
 
       await tx.insert(orderItems).values(
-        rows.map((p) => ({ orderId: order.id, productId: p.id, quantity: qtyById.get(p.id)!, unitPrice: p.price })),
+        rows.map((p) => ({
+          orderId: order.id,
+          productId: p.id,
+          quantity: qtyById.get(p.id)!,
+          unitPrice: p.price,
+          unitCost: p.cost,
+        })),
       );
       await tx.insert(stockMovements).values(
         rows.map((p) => ({ productId: p.id, type: "sale" as const, quantity: -qtyById.get(p.id)!, orderId: order.id })),

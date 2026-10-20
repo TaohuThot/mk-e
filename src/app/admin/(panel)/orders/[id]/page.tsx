@@ -8,6 +8,7 @@ import { formatDateTime, formatMoney } from "@/lib/format";
 import StatusBadge from "../../../StatusBadge";
 import { updateOrderStatus } from "../actions";
 import StatusForm from "../StatusForm";
+import { secondaryButtonClass } from "../../../styles";
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   await requireUser();
@@ -35,6 +36,14 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">คำสั่งซื้อ #{order.id}</h1>
         <StatusBadge status={order.status} />
+        <div className="ml-auto flex gap-2">
+          <Link href={`/admin/print/orders/${order.id}?type=receipt`} target="_blank" className={secondaryButtonClass}>
+            พิมพ์ใบเสร็จ
+          </Link>
+          <Link href={`/admin/print/orders/${order.id}?type=delivery`} target="_blank" className={secondaryButtonClass}>
+            พิมพ์ใบส่งของ
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

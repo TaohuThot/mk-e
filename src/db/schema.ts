@@ -24,6 +24,8 @@ export const products = pgTable("products", {
   sku: varchar("sku", { length: 100 }).notNull().unique(),
   barcode: varchar("barcode", { length: 100 }).unique(),
   price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
+  // ราคาทุนต่อชิ้น ใช้คำนวณกำไร (ไม่แสดงบนหน้าร้าน)
+  cost: numeric("cost", { precision: 12, scale: 2 }),
   description: text("description"),
   imagePath: text("image_path"),
   thumbnailPath: text("thumbnail_path"),
@@ -80,6 +82,8 @@ export const orderItems = pgTable(
     quantity: integer("quantity").notNull(),
     // ราคา ณ ตอนขาย เก็บแยกจากราคาสินค้าปัจจุบัน
     unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+    // ทุน ณ ตอนขาย เป็น null ถ้าตอนนั้นสินค้ายังไม่ได้ใส่ราคาทุน
+    unitCost: numeric("unit_cost", { precision: 12, scale: 2 }),
   },
   (t) => [index("order_items_order_idx").on(t.orderId)],
 );

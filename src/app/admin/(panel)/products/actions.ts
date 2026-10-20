@@ -9,14 +9,15 @@ import { requireUser } from "@/lib/auth";
 import { saveProductImage } from "@/lib/images";
 import { stockQty } from "@/lib/stock";
 import { deleteFile } from "@/lib/storage";
-import { firstError, isUniqueViolation, money, optionalText, requiredText, uniqueConstraint } from "@/lib/validation";
-import type { FormState } from "../../ui";
+import { firstError, isUniqueViolation, money, optionalMoney, optionalText, requiredText, uniqueConstraint } from "@/lib/validation";
+import type { FormState } from "../../styles";
 
 const productSchema = z.object({
   name: requiredText("ชื่อสินค้า").pipe(z.string().max(255)),
   sku: requiredText("SKU").pipe(z.string().max(100)),
   barcode: optionalText.pipe(z.string().max(100).nullable()),
   price: money,
+  cost: optionalMoney,
   description: optionalText,
 });
 
@@ -26,6 +27,7 @@ function parseProduct(formData: FormData) {
     sku: formData.get("sku"),
     barcode: formData.get("barcode") ?? undefined,
     price: formData.get("price"),
+    cost: formData.get("cost") ?? undefined,
     description: formData.get("description") ?? undefined,
   });
 }

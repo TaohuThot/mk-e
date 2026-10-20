@@ -3,7 +3,7 @@ import { desc, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { buttonClass, inputClass } from "../../ui";
+import { buttonClass, inputClass } from "../../styles";
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requireUser();

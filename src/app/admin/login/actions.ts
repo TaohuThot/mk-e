@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { createSession, destroySession } from "@/lib/auth";
-import type { FormState } from "../ui";
+import type { FormState } from "../styles";
 
 // hash จำลองไว้เทียบเมื่อไม่พบอีเมล เพื่อให้เวลาตอบกลับใกล้เคียงกัน
 const DUMMY_HASH = "$2b$12$ibRvDPBW37Ud7FhPxoxma.JQZL0GCGyQvz7LZ9UJvYr9DTaV4m.Ge";

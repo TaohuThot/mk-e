@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { firstError, optionalText, requiredText } from "@/lib/validation";
-import type { FormState } from "../../ui";
+import type { FormState } from "../../styles";
 
 const customerSchema = z.object({
   name: requiredText("ชื่อลูกค้า").pipe(z.string().max(255)),
