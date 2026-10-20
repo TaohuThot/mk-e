@@ -1,7 +1,7 @@
-'use client';
 import React from 'react';
 import Carousel from './component/Carousel';
 import Card from '../component/Card';
+import type { PublicProduct } from '@/lib/storefront';
 
 type Hero = {
   id: number;
@@ -57,7 +57,7 @@ const catagories: Catagory[] = [
   }
 ]
 
-const Body: React.FC = () => {
+const Body = ({ products }: { products: PublicProduct[] }) => {
   return (
     <>
       <Carousel />
@@ -86,7 +86,7 @@ const Body: React.FC = () => {
 
           <div className='text-center p-8'>
             <h2 className='text-2xl font-bold'>สินค้าแนะนำ</h2>
-              <Card />
+              <Card products={products} />
           </div>
         </div>
     </>

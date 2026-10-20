@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyShop
 
-## Getting Started
+เว็บร้านค้า (หน้าร้าน) + ระบบจัดการคลังสินค้าหลังบ้าน สร้างด้วย Next.js 15 (App Router)
 
-First, run the development server:
+- หน้าร้าน: `/`, `/Product`, `/Product/[id]` — ดึงสินค้า ราคา และสถานะสต็อกจริงจากฐานข้อมูล (ไม่แสดงราคาทุน)
+- หลังบ้าน (ต้องล็อกอิน): `/admin` — สินค้า, รูปสินค้า, บาร์โค้ด, สต็อก, คำสั่งซื้อ, ลูกค้า,
+  พิมพ์ใบเสร็จ/ใบส่งของ, รายงานยอดขายและกำไร, นำเข้าสินค้าจาก Excel/CSV
+
+## Stack หลังบ้าน
+
+| ส่วน | ใช้ |
+| --- | --- |
+| ฐานข้อมูล | PostgreSQL (Neon หรือ Supabase) ผ่าน Drizzle ORM |
+| รูปภาพ | แปลงเป็น WebP ด้วย sharp (ด้านยาว ≤1000px + thumbnail 300px) เก็บใน object storage แบบ S3 (Cloudflare R2 / Supabase Storage) ฐานข้อมูลเก็บแค่ path |
+| ล็อกอิน | อีเมล + รหัสผ่าน (bcrypt) และ session cookie แบบ JWT (jose) |
+
+## เริ่มใช้งานบนเครื่อง
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local     # แล้วแก้ DATABASE_URL และใส่ AUTH_SECRET (openssl rand -base64 32)
+npm run db:migrate             # สร้างตาราง
+npm run user:create -- you@example.com "ชื่อคุณ" "รหัสผ่านยาวอย่างน้อย12ตัว"
+npm run dev                    # เปิด http://localhost:3000/admin
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> คำสั่ง `db:*` และ `user:create` อ่านค่าจาก `.env` (ผ่าน dotenv) ถ้าใช้ `.env.local` ให้คัดลอกเป็น `.env` ด้วย
+> หรือรันแบบ `DATABASE_URL=... npm run db:migrate`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ถ้ายังไม่ได้ตั้งค่า `S3_*` รูปจะถูกเก็บในโฟลเดอร์ `uploads/` บนเครื่อง (ใช้ตอน dev ได้ แต่ใช้บน Vercel ไม่ได้)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## คำสั่งที่ใช้บ่อย
 
-## Learn More
+| คำสั่ง | ทำอะไร |
+| --- | --- |
+| `npm run db:generate` | สร้างไฟล์ migration ใหม่หลังแก้ `src/db/schema.ts` |
+| `npm run db:migrate` | รัน migration กับฐานข้อมูลใน `DATABASE_URL` |
+| `npm run db:studio` | เปิด Drizzle Studio ดู/แก้ข้อมูลในเบราว์เซอร์ |
+| `npm run user:create -- <email> <ชื่อ> <รหัสผ่าน>` | เพิ่มผู้ใช้ หรือเปลี่ยนรหัสผ่านถ้ามีอีเมลนี้แล้ว |
 
-To learn more about Next.js, take a look at the following resources:
+## โครงสร้างข้อมูล
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `products` — ชื่อ, SKU, บาร์โค้ด, ราคาขาย, ราคาทุน, รายละเอียด, image_path, thumbnail_path
+- `stock_movements` — ประวัติเข้า-ออก (บวก = รับเข้า, ลบ = จ่ายออก) **คงเหลือ = ผลรวมของ quantity** ไม่มีคอลัมน์ยอดคงเหลือแยก
+  ประเภท: `in` รับเข้า, `out` จ่ายออก, `adjust` ตรวจนับ, `sale` ขาย, `return` คืนจากการยกเลิกคำสั่งซื้อ
+- `customers` — ชื่อ, เบอร์โทร, อีเมล, ที่อยู่, หมายเหตุ
+- `orders` + `order_items` — ลูกค้า, สถานะ, ยอดรวม, รายการสินค้าพร้อม **ราคาและทุน ณ ตอนขาย**
+- `users` — ผู้ใช้หลังบ้าน
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+กติกาสต็อก: สร้างคำสั่งซื้อแล้วตัดสต็อกทันที (ขายเกินคงเหลือไม่ได้), ยกเลิกคำสั่งซื้อแล้วคืนสต็อกอัตโนมัติ (ยกเลิกแล้วเปลี่ยนกลับไม่ได้),
+ลบสินค้าที่เคยอยู่ในคำสั่งซื้อไม่ได้
 
-## Deploy on Vercel
+## บาร์โค้ด
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- เครื่องสแกนแบบ USB/Bluetooth ใช้ได้ทุกช่องค้นหา (เครื่องจะพิมพ์รหัสแล้วกด Enter ให้)
+- หน้า `/admin/scan` ค้นหาสินค้าจากบาร์โค้ด/SKU แล้วเปิดหน้าสินค้านั้น และใช้กล้องมือถือได้ในเบราว์เซอร์ที่รองรับ BarcodeDetector (เช่น Chrome บน Android)
+- หน้าสร้างคำสั่งซื้อ: สแกนแล้วเพิ่มสินค้าลงตะกร้าทันที สแกนซ้ำจะเพิ่มจำนวน
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## พิมพ์ใบเสร็จ / ใบส่งของ
+
+ในหน้ารายละเอียดคำสั่งซื้อ กด "พิมพ์ใบเสร็จ" หรือ "พิมพ์ใบส่งของ" จะเปิดหน้าขนาด A4 แล้วกดพิมพ์ (หรือบันทึกเป็น PDF จากหน้าต่างพิมพ์)
+ข้อมูลร้านบนหัวกระดาษตั้งได้ใน `.env`: `SHOP_NAME`, `SHOP_ADDRESS`, `SHOP_PHONE`, `SHOP_TAX_ID`
+
+## รายงาน
+
+`/admin/reports` — ยอดขาย, จำนวนคำสั่งซื้อ, กำไรขั้นต้น (ราคาขาย − ทุน ณ ตอนขาย) แยกรายวันหรือรายเดือน และสินค้าขายดี 10 อันดับ
+ไม่นับคำสั่งซื้อที่ยกเลิก คิดวันตามเวลาไทย รายการที่ขายตอนสินค้ายังไม่มีราคาทุนจะไม่ถูกนับในกำไร
+
+## นำเข้าสินค้าจากไฟล์
+
+`/admin/products/import` — รองรับ .xlsx และ .csv (UTF-8 หรือ windows-874 จาก Excel ภาษาไทย) ดาวน์โหลดไฟล์ตัวอย่างได้ในหน้านั้น
+- จับคู่สินค้าด้วย SKU: มีอยู่แล้ว = อัปเดตเฉพาะช่องที่กรอก, ยังไม่มี = เพิ่มใหม่ (ต้องมีชื่อและราคา)
+- คอลัมน์ "จำนวนรับเข้า" จะ **บวกเพิ่ม** เข้าสต็อก
+- ถ้ามีแถวไหนผิด จะไม่นำเข้าเลยสักแถว และแสดงรายการที่ต้องแก้
+
+## Deploy (เช่น Vercel)
+
+1. สร้างฐานข้อมูลที่ Neon หรือ Supabase แล้วคัดลอก connection string (มี `sslmode=require`)
+   ถ้าใช้ connection pooler ได้เลย โค้ดปิด prepared statements ไว้แล้ว
+2. สร้าง bucket ที่ Cloudflare R2 หรือ Supabase Storage เปิดให้อ่านแบบ public แล้วสร้าง access key แบบ S3
+3. ตั้ง environment variables ตาม `.env.example` ในหน้า settings ของโฮสต์
+4. รัน `npm run db:migrate` และ `npm run user:create` จากเครื่องตัวเอง โดยชี้ `DATABASE_URL` ไปที่ฐานข้อมูลจริง
+5. Deploy
+
+## ความปลอดภัยและแบ็กอัป
+
+- ห้าม commit ไฟล์ `.env*` (มีใน `.gitignore` แล้ว ยกเว้น `.env.example`)
+- ทุกหน้าและทุก server action ของหลังบ้านตรวจ session เอง ไม่ได้พึ่ง middleware อย่างเดียว
+- ยังไม่มีการจำกัดจำนวนครั้งที่ล็อกอินผิด ควรใช้รหัสผ่านยาวและเดายาก
+- Neon แผนฟรีย้อนข้อมูลได้แค่ 6 ชั่วโมง ควร `pg_dump "$DATABASE_URL" > backup.sql` เป็นประจำ
